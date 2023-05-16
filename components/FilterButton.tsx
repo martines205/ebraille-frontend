@@ -1,5 +1,5 @@
 import { ClearRounded, ExpandMoreOutlined } from "@mui/icons-material";
-import { BOOK_CONTENT_INTERFACE, useBookRequest } from "context/BooksContext";
+import { BOOK_RESPONSE, useBookRequest } from "context/BooksContext";
 import { createContext, useContext, useEffect, useState } from "react";
 
 export interface INTERFACE_FILTER_BUTTON {
@@ -29,7 +29,7 @@ export function createButtonContext() {
 }
 
 interface INTERFACE_BUTTON_COMPONENT {
-  booksData: BOOK_CONTENT_INTERFACE[];
+  booksData: BOOK_RESPONSE[];
   buttonTypeId: string;
   filterTypeLabel: string;
   className?: string;
@@ -83,7 +83,7 @@ export function FilterButton({ buttonTypeId, filterTypeLabel, className, context
   );
 }
 
-function filterOption(filterTypeIs: string, data: BOOK_CONTENT_INTERFACE[]): string[] {
+function filterOption(filterTypeIs: string, data: BOOK_RESPONSE[]): string[] {
   let Options: Array<string> = [];
   if (filterTypeIs === "Category") {
     Options = data

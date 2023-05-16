@@ -13,6 +13,7 @@ import UpdateBooks from "components/updateBookComponent";
 import { RemoveBook } from "components/RemoveBook";
 import { AddBook } from "components/AddBook";
 import { BookContextProvider } from "context/BooksContext";
+import EditRole from "components/EditRole";
 
 interface ContextType {
   mode: number;
@@ -23,7 +24,7 @@ export const ModeContext = createContext<IModeContext>([() => null]);
 export default function Index({ role, username }: any) {
   const route = useRouter();
   const { authenticated, loadingPage } = useAuth();
-  const [mode, setMode] = useState<ContextType>({ mode: 1 });
+  const [mode, setMode] = useState<ContextType>({ mode: 0 });
   useEffect(() => {
     console.log("mode: ", mode);
     const onMode = mode.mode;
@@ -66,7 +67,7 @@ export default function Index({ role, username }: any) {
           </BookContextProvider>
         );
       case 4:
-        return <>Edit Role</>;
+        return <EditRole />;
       default:
         return (
           <BookContextProvider>

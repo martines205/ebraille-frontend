@@ -1,7 +1,8 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { SearchOutlined } from "@mui/icons-material";
-import { BOOK_CONTENT_INTERFACE, FILTER_CONTENT_INTERFACE, useBookRequest } from "context/BooksContext";
+import { FILTER_CONTENT_INTERFACE, useBookRequest } from "context/BooksContext";
 import { FilterButton, INTERFACE_FILTER_BUTTON, createButtonContext } from "./FilterButton";
+import Image from "next/image";
 
 interface INTERFACE_SEARCH_CONTEXT {
   title: string;
@@ -13,6 +14,7 @@ const ButtonFilterContext = createButtonContext();
 
 export function ListBook() {
   const { onLoading, books, filteredBooks, filter, searchBookTitle } = useBookRequest();
+  console.log("filteredBooks: ", filteredBooks);
   const [button, setButton] = useState<INTERFACE_FILTER_BUTTON>({ onId: "0", filterTypeData: { categoryIs: "", languageIs: "" } });
   const [toSearch, setToSearch] = useState<INTERFACE_SEARCH_CONTEXT>({ title: "" });
 
@@ -66,6 +68,10 @@ export function ListBook() {
     setButton(updatedButtonData);
   }
 
+  const imageLoader = (isbn: string) => {
+    return `http://localhost:3001/book/getCover?isbn=${isbn}`;
+  };
+
   return (
     <div className={`w-5/6 h-[90%] relative top-8 border border-red-600 bg-black bg-opacity-50 rounded-2xl flex flex-col items-center`} onClick={() => onLeave()}>
       <SearchContext.Provider value={[toSearch, setToSearch]}>
@@ -105,20 +111,19 @@ export function ListBook() {
             {filteredBooks.map((value, index) => (
               <div
                 key={index}
-                onClick={(e) => {
-                  const index: number = parseInt((e.target as HTMLElement).id);
+                onClick={() => {
+                  console.log("index: ", index);
+                  console.log("booksData: ", filteredBooks);
                   console.log("booksData: ", filteredBooks[index]);
                 }}
                 id={index.toString()}
-                className="w-[230px] h-[300px] bg-slate-50/50 rounded-md hover:border-4 hover:border-yellow-300 mr-3"
+                className="w-[230px] h-[300px] bg-slate-50/50 rounded-md hover:border-4 hover:border-yellow-300 mr-3 relative"
               >
-                {value.titles}
+                <Image loader={() => imageLoader(`${filteredBooks[index].isbn}`)} src={"tes.png"} fill alt={`cover book ${value.titles}.png`} />
               </div>
             ))}
           </>
         )}
-
-        {/* {context.buttonId !== "0" && <div className="absolute bg-black/75 w-full h-full top-0"></div>} */}
       </div>
     </div>
   );

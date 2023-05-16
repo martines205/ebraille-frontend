@@ -12,7 +12,7 @@ type Props = {
 
 type listTokenType = { accessToken: string; refreshToken: string };
 
-export interface BOOK_CONTENT_INTERFACE {
+export interface BOOK_RESPONSE {
   isbn: string;
   availability: string;
   titles: string;
@@ -21,7 +21,7 @@ export interface BOOK_CONTENT_INTERFACE {
   year: string;
   categories: string;
   editions: string;
-  id: string;
+  publishers: string;
 }
 
 export interface FILTER_CONTENT_INTERFACE {
@@ -36,8 +36,8 @@ export interface SEARCH_INTERFACE {
 interface BOOKS_CONTEXT {
   onLoading: boolean;
   isError: boolean;
-  books: BOOK_CONTENT_INTERFACE[] | [];
-  filteredBooks: BOOK_CONTENT_INTERFACE[] | [];
+  books: BOOK_RESPONSE[] | [];
+  filteredBooks: BOOK_RESPONSE[] | [];
   filter: ({ categories, languages }: FILTER_CONTENT_INTERFACE) => void;
   reloadBookData: () => Promise<void>;
   searchBookTitle: ({ title }: SEARCH_INTERFACE) => void;
@@ -59,9 +59,9 @@ export function useBookRequest() {
 const BooksContext = createContext<BOOKS_CONTEXT>(BooksContextDefaultValues);
 
 export function BookContextProvider({ children }: Props) {
-  const [booksData, setBooksData] = useState<BOOK_CONTENT_INTERFACE[] | []>([]);
-  const [booksDataBackup, setBooksDataBackup] = useState<BOOK_CONTENT_INTERFACE[] | []>([]);
-  const [filteredBookData, setFilteredData] = useState<BOOK_CONTENT_INTERFACE[] | []>([]);
+  const [booksData, setBooksData] = useState<BOOK_RESPONSE[] | []>([]);
+  const [booksDataBackup, setBooksDataBackup] = useState<BOOK_RESPONSE[] | []>([]);
+  const [filteredBookData, setFilteredData] = useState<BOOK_RESPONSE[] | []>([]);
   const [onLoading, setOnLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
   useEffect(() => {
@@ -73,7 +73,7 @@ export function BookContextProvider({ children }: Props) {
         setBooksData(data);
         setFilteredData(data);
         setBooksDataBackup(data);
-        console.log("data: ", data);
+        // console.log("data: ", data);
       } catch (error: any) {
         setError(true);
         console.log("error+>: ", error.message);
@@ -99,7 +99,7 @@ export function BookContextProvider({ children }: Props) {
   };
 
   const filter = ({ categories, languages }: FILTER_CONTENT_INTERFACE) => {
-    console.log("categories, languages: ", categories, languages);
+    // console.log("categories, languages: ", categories, languages);
     let bookFiltered = [];
     if (categories === "" && languages === "") {
       setFilteredData(booksData);
@@ -136,13 +136,12 @@ export function BookContextProvider({ children }: Props) {
   return <BooksContext.Provider value={value}>{children}</BooksContext.Provider>;
 }
 
-async function getBookList(): Promise<BOOK_CONTENT_INTERFACE[] | Error> {
-  return await new Promise(async (resolve, reject): Promise<void | BOOK_CONTENT_INTERFACE[] | string | Error> => {
+async function getBookList(): Promise<BOOK_RESPONSE[] | Error> {
+  return await new Promise(async (resolve, reject): Promise<void | BOOK_RESPONSE[] | string | Error> => {
     const { accessToken, refreshToken } = getAllToken();
-    console.log("accessToken, refreshToken: ", accessToken, refreshToken);
     try {
       const response = await apiFetcher.get("/book/website/getBook", { params: { accessToken, refreshToken } });
-      console.log("response: ", response);
+      console.log("response: ", response.data?.data);
       resolve(response.data?.data);
     } catch (error) {
       console.log("error: ", error);

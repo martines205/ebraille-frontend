@@ -1,235 +1,95 @@
-import CircleIcon from "@mui/icons-material/Circle";
-import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import { green, grey, pink } from "@mui/material/colors";
-import { Formik } from "formik";
 import Link from "next/link";
-import { useState } from "react";
-import * as Yup from "yup";
+import React, { useState } from "react";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { apiFetcher } from "./_app";
+import { AxiosError } from "axios";
+import { useRouter } from "next/router";
+
+interface formField {
+  FirstName: string;
+  LastName: string;
+  NIK: string;
+  Gender: string | null;
+  Username: string;
+  Email: string;
+  Password: string;
+  ConfirmPassword?: string;
+}
 
 export default function Index() {
-  const [gender, setGender] = useState("");
-  const [errorState, setErrorState] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("Dummy error!!!!");
+  const [msg, setMsg] = useState("");
   const [formIndex, setFormIndex] = useState(0);
-  function genderButtonHandler(gender: string) {
-    if (gender === "M") setGender("MALE");
-    else if (gender === "F") setGender("FEMALE");
-  }
+  const methods = useForm<formField>();
+  const router = useRouter();
+  const onSubmit = async (data: formField) => {
+    if (Object.values(data).includes("") || Object.values(data).includes(null)) return;
+    if (data.Password !== data.ConfirmPassword) {
+      methods.setError("Password", { message: "Password tidak sesuai! *" });
+      return;
+    }
 
-  const SignupSchema = Yup.object().shape({
-    firstName: Yup.string().min(2, "Too Short!").max(5, "Too Long!").required("Required"),
-    lastName: Yup.string().min(2, "Too Short!").max(5, "Too Long!").required("Required"),
-    nik: Yup.string().min(2, "Too Short!").max(5, "Too Long!").required("Required"),
-    gender: Yup.string().min(2, "Too Short!").max(5, "Too Long!").required("Required"),
-  });
+    const result = await sendRegistrationRequest(data);
+    if (result instanceof AxiosError) {
+      console.log("result.response?.data: ", result.response?.data);
+      Object.keys(result.response?.data.error).map((e) => {
+        console.log(e);
+        if (e === "NIK") {
+          methods.setError(`NIK`, { message: "* NIK ini sudah terdaftar!" });
+          setFormIndex(0);
+        }
+        if (e === "Username") methods.setError(`Username`, { message: "* Username ini sudah terdaftar!" });
+        if (e === "Email") methods.setError(`Email`, { message: "* Email ini sudah terdaftar!" });
+      });
+    } else {
+      setMsg("Registrasi berhasil!");
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+    }
+  };
 
   return (
-    <main className={`h-screen w-screen flex justify-center items-center relative`}>
-      <div className="bg-black bg-opacity-[.35] h-[862px] w-[487px] rounded-2xl absolute">
+    <main className={`h-screen w-screen flex justify-center items-center`}>
+      <div className="bg-black/40 h-[722px] w-[487px] rounded-2xl border-2 border-blue-500 relative">
         <div className="h-[10%] w-full">
           <h1 className="text-center text-4xl font-bold text-white mt-10 ">REGISTRATION PAGE</h1>
-          <hr className=" ml-[10%] mt-7 w-4/5 border-[#FF5A5A] border-[1px] mb-10" />
+          <hr className=" ml-[10%] mt-7 w-4/5 border-[#FF5A5A] border-[1px] mb-6" />
 
-          <Formik
-            initialValues={{
-              firstName: "",
-              lastName: "",
-              nik: "",
-              gender: "",
-              username: "",
-              email: "",
-              password: "",
-              cPassword: "",
-            }}
-            validationSchema={SignupSchema}
-            onSubmit={(values, actions) => {
-              console.log("values: ", values);
-              actions.setSubmitting(false);
-              actions.resetForm();
-              console.log("submit");
-            }}
-          >
-            {(props) => {
-              // console.log(props);
-              return (
-                <form className="ml-7 mr-7" onSubmit={props.handleSubmit}>
-                  {formIndex === 0 ? (
-                    <>
-                      <>
-                        <div className="flex flex-col ">
-                          <label htmlFor="firstName" className={`text-xl relative + ${!props.errors.firstName ? "text-white" : "text-red-300"} `}>
-                            First Name
-                            {props.errors.firstName ? <p className="absolute top-[70px] text-yellow-300">{props.errors.firstName}</p> : null}
-                          </label>
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)}>
+              {formIndex === 0 ? <UserInformationForm /> : <UserAccountForm />}
+              <hr className=" ml-[10%] mt-7 w-4/5 border-[#FF5A5A] border-[1px] mb-7" />
 
-                          <input
-                            type="text"
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.firstName}
-                            name={"firstName"}
-                            id="firstName"
-                            className={`h-10 bg-transparent border-b-[1px] text-white  focus:outline-0  text-xl mb-10 ${!props.errors.firstName ? " border-white" : "border-red-300"}`}
-                          />
-
-                          <label htmlFor="lastName" className="text-white text-xl">
-                            Last Name
-                          </label>
-                          <input
-                            type="text"
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.lastName}
-                            name={"lastName"}
-                            id="lastName"
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-                          <label htmlFor="NIK" className="text-white text-xl">
-                            NIK
-                          </label>
-                          <input
-                            type="text"
-                            id="nik"
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.nik}
-                            name={"nik"}
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-                          <h1 className="text-center text-white text-xl font-bold mb-7">Gender</h1>
-
-                          <div className="w-full flex justify-evenly  items-center">
-                            <button
-                              name={props.values.gender}
-                              type="button"
-                              className="h-14 w-32 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500"
-                              value={"M"}
-                              onClick={(choice: any) => {
-                                genderButtonHandler(choice.target.value);
-                                props.values.gender = "M";
-                              }}
-                            >
-                              {gender === "MALE" ? (
-                                <CircleIcon sx={{ fontSize: 20, color: green[400] }} className="relative bottom-[1px] mr-1" />
-                              ) : (
-                                <CircleOutlinedIcon sx={{ fontSize: 20, color: grey[900] }} className="relative bottom-[1px] mr-1" />
-                              )}
-                              Male
-                            </button>
-                            <button
-                              type="button"
-                              name={props.values.gender}
-                              className="h-14 w-32 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500"
-                              value={"F"}
-                              onClick={(choice: any) => {
-                                props.values.gender = "F";
-                                genderButtonHandler(choice.target.value);
-                              }}
-                            >
-                              {gender === "FEMALE" ? (
-                                <CircleIcon sx={{ fontSize: 20, color: green[400] }} className="relative bottom-[1px] mr-1" />
-                              ) : (
-                                <CircleOutlinedIcon sx={{ fontSize: 20, color: grey[900] }} className="relative bottom-[1px] mr-1" />
-                              )}
-                              Female
-                            </button>
-                          </div>
-                          <hr className=" ml-[10%] mt-7 w-4/5 border-[#FF5A5A] border-[1px] mb-7" />
-                          <div className="w-full flex justify-evenly  items-center">
-                            <button type="button" className="h-14 w-44 bg-black bg-opacity-[.45] rounded-xl font-bold text-2xl text-white text-opacity-40 border-[1px] border-red-500 " disabled={true}>
-                              Back
-                            </button>
-                            <button
-                              type="button"
-                              id="next"
-                              className="h-14 w-44 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500 hover:bg-[#FFA6C6] hover:bg-opacity-[.75] active:bg-opacity-[.85] delay-75"
-                              onClick={() => setFormIndex(1)}
-                            >
-                              Next
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    </>
-                  ) : (
-                    <>
-                      <>
-                        <div className="flex flex-col ">
-                          <label htmlFor="username" className="text-white text-xl">
-                            Username
-                          </label>
-                          <input
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.username}
-                            name="username"
-                            id="username"
-                            type="text"
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-                          <label htmlFor="email" className="text-white text-xl">
-                            Email
-                          </label>
-                          <input
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.email}
-                            id="email"
-                            type="email"
-                            name="email"
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-                          <label htmlFor="password" className="text-white text-xl">
-                            Password
-                          </label>
-                          <input
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.password}
-                            id="password"
-                            type="password"
-                            name="password"
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-                          <label htmlFor="C_password" className="text-white text-xl">
-                            Confirm Password
-                          </label>
-                          <input
-                            onChange={props.handleChange}
-                            onBlur={props.handleBlur}
-                            value={props.values.cPassword}
-                            id="cPassword"
-                            type="cPassword"
-                            name="cPassword"
-                            className="h-10 bg-transparent border-b-[1px] border-white focus:outline-0 text-white text-xl mb-10"
-                          />
-
-                          <hr className=" ml-[10%]  w-4/5 border-[#FF5A5A] border-[1px] mb-7" />
-                          <div className="w-full flex justify-evenly  items-center">
-                            <button
-                              type="button"
-                              className="h-14 w-44 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500 hover:bg-[#FFA6C6] hover:bg-opacity-[.75] active:bg-opacity-[.85] delay-75"
-                              onClick={() => setFormIndex(0)}
-                            >
-                              Back
-                            </button>
-                            <button
-                              type="button"
-                              className="h-14 w-44 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500 hover:bg-[#FFA6C6] hover:bg-opacity-[.75] active:bg-opacity-[.85] delay-75"
-                              onClick={() => props.handleSubmit()}
-                            >
-                              Register
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    </>
-                  )}
-                </form>
-              );
-            }}
-          </Formik>
+              <div className="w-full bg-slate-400/0 mt-3 flex justify-center gap-4">
+                <button
+                  type="button"
+                  className={`w-1/3 border border-red-400 rounded-md h-10  p-1 ${formIndex === 0 ? "bg-black/70 text-white/25 cursor-not-allowed" : "bg-black/50 cursor-pointer"}  text-white`}
+                  onClick={() => setFormIndex(0)}
+                  disabled={formIndex === 0}
+                >
+                  Back
+                </button>
+                <button
+                  type={formIndex === 0 ? "button" : "submit"}
+                  className="w-1/3 border border-red-400 rounded-md h-10  p-1 bg-black/50 cursor-pointer text-white"
+                  // disabled={formIndex !== 0}
+                  onClick={() => {
+                    setFormIndex(1);
+                    if (formIndex === 1) {
+                      if (Object.values(methods.getValues()).includes("") || Object.values(methods.getValues()).includes(null)) {
+                        setMsg("Silahkan isi form registrasi secara lengkap!");
+                        setTimeout(() => {
+                          setMsg("");
+                        }, 2500);
+                      }
+                    }
+                  }}
+                >
+                  {formIndex === 0 ? "Next" : "Registered"}
+                </button>
+              </div>
+            </form>
+          </FormProvider>
 
           <div className="flex justify-center items-center mt-7 gap-2">
             <hr className="  w-[20%] border-[#FF5A5A] border-[1px]" />
@@ -242,40 +102,215 @@ export default function Index() {
             <Link
               href={"/"}
               className="   h-14 w-44 bg-black bg-opacity-[.25] rounded-xl font-bold text-2xl text-white border-[1px] border-red-500 hover:bg-[#FFA6C6] hover:bg-opacity-[.75] active:bg-opacity-[.85] text-center duration-200 flex justify-center items-center"
-              // onClick={() => {
-              //   ro;
-              // }}
             >
               Login
             </Link>
           </div>
         </div>
-      </div>
-      {errorState && (
-        <>
-          <div className=" bg-black w-full h-full  z-1 bg-opacity-60 absolute flex justify-center items-center">
-            <div id="modal box" className="w-[601px] h-[295px] bg-[#2B2B2B] rounded-3xl shadow-md  shadow-rose-600 border-2 border-white relative ">
-              <button
-                type="button"
-                onClick={() => {
-                  setErrorState(false);
-                  setErrorMsg("");
-                }}
-              >
-                <CloseRoundedIcon sx={{ color: "white" }} className="absolute top-4 right-5" />
-              </button>
-              <h1 className="text-center mt-5 font-bold text-4xl text-white mb-5">ERROR</h1>
-              <div className=" flex justify-center mb-5">
-                <hr className=" w-4/5" />
-              </div>
-
-              <div id="Error Content" className="bg-[#474747] rounded-xl bg-opacity-30 w-[96%] h-3/6 m-auto ">
-                <p className="w-full h-full flex justify-center items-center text-white">{errorMsg}</p>
-              </div>
+        {msg && (
+          <div className="absolute h-full w-full  bg-black/75 rounded-xl top-0 flex justify-center items-center">
+            <div className=" h-auto w-auto p-5 bg-orange-100/90 rounded-xl top-0 border-2 border-red-500">
+              <h1 className="text-center  text-3xl font-bold">Information!</h1>
+              <hr className="border border-red-300 mb-2 mt-1" />
+              <p>{msg} </p>
             </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </main>
   );
+}
+
+function UserInformationForm() {
+  interface UserInformationFormField {
+    FirstName: string;
+    LastName: string;
+    NIK: string;
+    Gender: string | null;
+  }
+  const {
+    register,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useFormContext<UserInformationFormField>(); // retrieve all hook methods
+
+  const numberGuard = (e: React.ChangeEvent) => {
+    let value;
+    const revalidate = (e.target as HTMLInputElement).value;
+    if ((e.target as HTMLInputElement).value.length > 1) {
+      value = parseInt((e.target as HTMLInputElement).value.split("").at(-1)!);
+      // console.log((e.target as HTMLInputElement).value);
+      // console.log("value: ", Number.isInteger(value));
+      if (!Number.isInteger(value)) setValue("NIK", revalidate.slice(0, revalidate.length - 1));
+      else setValue("NIK", revalidate);
+      return;
+    }
+    if (!Number.isInteger(parseInt((e.target as HTMLInputElement).value))) setValue("NIK", revalidate.slice(0, revalidate.length - 1));
+  };
+  return (
+    <div className="w-full h-auto bg-slate-500/0 flex flex-col items-center">
+      <div className="relative w-full h-auto bg-slate-500/0 flex flex-col items-start ml-10">
+        <label htmlFor="FirstName" className="text-xl text-white">
+          First Name
+        </label>
+        <input
+          id="FirstName"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("FirstName")}
+        />
+        <label htmlFor="LastName" className="text-xl text-white">
+          Last Name
+        </label>
+        <input
+          id="LastName"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("LastName")}
+        />
+        <label htmlFor="NIK" className="text-xl text-white">
+          NIK
+        </label>
+        <input
+          id="NIK"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("NIK", { onChange: (e) => numberGuard(e) })}
+        />
+        {errors.NIK && (
+          <div className="absolute bottom-[51px] left-[37px] bg-black/50 pl-2 pr-2 rounded-lg">
+            <p className=" text-red-200">{errors.NIK.message}</p>
+          </div>
+        )}
+      </div>
+
+      <label htmlFor="" className="text-xl text-white mb-3 mt-1">
+        Gender
+      </label>
+
+      <div className="flex gap-4  w-full justify-center" id="genderOption">
+        <div className="border border-red-400 rounded-md h-10 w-1/3 p-1 bg-black/50 cursor-pointer flex justify-center items-center" onClick={() => setValue("Gender", "F")}>
+          <input
+            id="Gender_Female"
+            type="radio"
+            checked={getValues("Gender") === "F" ? true : undefined}
+            className="appearance-none checked:bg-green-400 h-3 w-3 rounded-full ring ring-indigo-100 ml-2"
+            {...register("Gender")}
+            value={"F"}
+          />
+          <label htmlFor="Gender_Female" className="text-lg ml-2 text-white mr-2 relative bottom-[1px]">
+            Female
+          </label>
+        </div>
+        <div className="border border-red-400 rounded-md h-10 w-1/3 p-1 bg-black/50 cursor-pointer flex justify-center items-center" onClick={() => setValue("Gender", "M")}>
+          <input
+            id="Gender_Male"
+            type="radio"
+            checked={getValues("Gender") === "M" ? true : undefined}
+            className="appearance-none checked:bg-green-400 h-3 w-3 rounded-full ring ring-indigo-100 ml-2"
+            {...register("Gender")}
+            value={"M"}
+          />
+          <label htmlFor="Gender_Male" className="text-lg ml-2 text-white mr-2">
+            Male
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserAccountForm() {
+  interface UserInformationFormField {
+    Username: string;
+    Email: string;
+    Password: string;
+    ConfirmPassword: string;
+  }
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<UserInformationFormField>(); // retrieve all hook methods
+  return (
+    <div className="w-full h-auto bg-slate-500/0 flex flex-col items-center">
+      <div className="w-full h-auto bg-slate-500/0 flex flex-col items-start ml-10 relative">
+        <label htmlFor="Username" className="text-xl text-white">
+          Username
+        </label>
+        <input
+          id="Username"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("Username")}
+        />
+
+        {errors.Username && (
+          <div className="absolute top-[1px] left-[98px] bg-black/50 pl-2 pr-2 rounded-lg">
+            <p className=" text-red-200">{errors.Username.message}</p>
+          </div>
+        )}
+
+        <label htmlFor="Email" className="text-xl text-white">
+          Email
+        </label>
+        <input
+          id="Email"
+          type="email"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9 bg-clip-text  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          style={{ WebkitTextFillColor: "white" }}
+          {...register("Email")}
+        />
+
+        {errors.Email && (
+          <div className="absolute top-[77px] left-14 bg-black/50 pl-2 pr-2 rounded-lg">
+            <p className="  text-red-200">{errors.Email.message}</p>
+          </div>
+        )}
+
+        <label htmlFor="Password" className="text-xl text-white">
+          Password
+        </label>
+        <input
+          id="Password"
+          type="password"
+          autoComplete="off"
+          className="w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("Password")}
+        />
+        <label htmlFor="ConfirmPassword" className="text-xl text-white">
+          Confirm Password
+        </label>
+        <input
+          id="ConfirmPassword"
+          type="password"
+          autoComplete="off"
+          className=" w-[91%]  focus:outline-none h-9  bg-black/20 rounded-tr-sm rounded-tl-sm border-b text-white  focus:outline-0 text-xl mb-3 pl-2"
+          {...register("ConfirmPassword")}
+        />
+        {errors.Password && (
+          <div className="absolute bottom-[52px] left-[170px] bg-black/50 pl-2 pr-2 rounded-lg">
+            <p className="  text-red-200">{errors.Password.message}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+async function sendRegistrationRequest(userData: formField) {
+  const requestData = { ...userData };
+  delete requestData.ConfirmPassword;
+  try {
+    const response = await apiFetcher.post("/register", requestData, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    console.log("response: ", response.data);
+    return { status: true, message: response.data };
+  } catch (error) {
+    return error;
+  }
 }

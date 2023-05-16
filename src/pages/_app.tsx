@@ -2,14 +2,19 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import axios from "axios";
 import { AuthProvider } from "context/authContext";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
-// import bg from "../../asset/mountains-1412683.svg";
+const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <AuthProvider>
-      <Component {...pageProps} />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 

@@ -191,12 +191,18 @@ export default function Index() {
           {loading ? <LoadingAnimation className="h-7 w-7 fill-[#50d71e] ml-2 antialiased" /> : <></>}
         </button>
         <hr className="w-4/6" />
-        <h2 className="text-sm text-white">{"Don't have an account?"}</h2>
-        <div className="w-4/5 flex justify-center items-center gap-2">
-          <hr className="w-1/6" />
+        <div className=" w-full bg-slate-100/10 text-center pt-1 pb-1">
           <p className="text-white relative bottom-[1px]">
-            Click,
+            {"Don't have an account?"} Click,
             <Link href={"registration"} className="font-bold text-white underline cursor-pointer ml-[2px]">
+              here
+            </Link>
+          </p>
+        </div>
+        <div className=" w-full bg-slate-100/10 text-center pt-1 pb-1">
+          <p className="text-white relative bottom-[1px]">
+            {"Forgot password?"} Click,
+            <Link href={"forgotPassword"} className="font-bold text-white underline cursor-pointer ml-[2px]">
               here
             </Link>
           </p>
