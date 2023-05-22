@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: false,
   env: {
-    API_BASE_URL: "http://localhost:3001",
+    // API_BASE_URL: "http://localhost:3001",
+    API_BASE_URL: "http://192.168.137.254:3001",
   },
 };
 

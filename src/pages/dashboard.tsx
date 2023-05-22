@@ -130,7 +130,7 @@ export default function Index() {
           <div className=" w-64 h-[75%] bg-yellow-300/90 absolute bottom-24 right-10 rounded-lg flex flex-col  items-center  border-2 border-blue-600 p-2 z-50">
             <div className="w-full h-full overflow-y-auto scrollbar-hide rounded-lg">
               {Object.keys(helpRequest).map((v, i) => (
-                <div className="w-[100%] h-20 bg-white rounded-lg mb-1 border-2 border-red-500 flex">
+                <div className="w-[100%] h-20 bg-white rounded-lg mb-1 border-2 border-red-500 flex" key={i}>
                   <button
                     onClick={() => {
                       const latestHelpRequest: any = { ...helpRequest };
