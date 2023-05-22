@@ -64,16 +64,21 @@ export function BookContextProvider({ children }: Props) {
   const [filteredBookData, setFilteredData] = useState<BOOK_RESPONSE[] | []>([]);
   const [onLoading, setOnLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
+  const { logout, setUserContext } = useAuth();
+
   useEffect(() => {
     (async () => {
       try {
+        const { accessToken, refreshToken } = getAllToken();
+        if (accessToken === null || refreshToken === null) {
+          setUserContext(undefined, undefined);
+          logout();
+        }
         const data = await getBookList();
-        // console.log("data: ", data);
         if (data instanceof Error) throw data as Error;
         setBooksData(data);
         setFilteredData(data);
         setBooksDataBackup(data);
-        // console.log("data: ", data);
       } catch (error: any) {
         setError(true);
         console.log("error+>: ", error.message);

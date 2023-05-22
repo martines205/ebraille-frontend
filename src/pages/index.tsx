@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import axios from "axios";
@@ -22,12 +22,12 @@ function instanceOfErrorDataSchema(data: any): data is errorDataSchema {
 
 export default function Index() {
   const { status } = useRouter().query;
-  // console.log("query: ", query);
   if (status === "false") {
     console.log("status: ", status);
     sessionStorage.clear();
   }
-  const { authenticated, login, logout, loadingPage } = useAuth();
+
+  const { authenticated, login, logout, loadingPage, UserContext, setUserContext } = useAuth();
   const [formData, setFormData] = useState<formDataSchema>({ username: "", password: "" });
   const [errorState, setErrorState] = useState({ username: "", password: "", unexpected: "" });
   const [loading, setLoading] = useState(false);
@@ -52,17 +52,17 @@ export default function Index() {
     setTimeout(async () => {
       setLoading(true);
       try {
-        const { accessToken, refreshToken } = await requestLogin(formData);
-        // console.log("accessToken, refreshToken, role: ", accessToken, refreshToken, role);
+        const { accessToken, refreshToken, role } = await requestLogin(formData);
         const localStorageData = {
           username: formData.username,
-          // role,
+          role,
           expiration: Date.now() + 1000 * 60 * 180,
         };
         const sessionStorageData = {
           accessToken,
           refreshToken,
         };
+        setUserContext(formData.username, role);
         login();
         localStorage.setItem("_USER_INFORMATION", JSON.stringify(localStorageData));
         sessionStorage.setItem(localStorageData.username, JSON.stringify(sessionStorageData));
@@ -116,18 +116,10 @@ export default function Index() {
 
   useEffect(() => {
     try {
-      // console.log("authenticated,loadingPage: ", authenticated, loadingPage);
       if (authenticated) {
-        const usernameCache = JSON.parse(localStorage.getItem("_USER_INFORMATION")!).username;
-        const { accessToken, refreshToken } = JSON.parse(sessionStorage.getItem(usernameCache)!);
         router.replace(
           {
             pathname: "/dashboard",
-            query: {
-              username: usernameCache,
-              accessToken,
-              refreshToken,
-            },
           },
           "/dashboard"
         );

@@ -1,8 +1,7 @@
 import { apiFetcher } from "@/pages/_app";
 import axios from "axios";
-import { promises } from "dns";
-import { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { boolean } from "yup";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import { Type } from "typescript";
 
 type Props = {
   children: ReactNode;
@@ -11,16 +10,22 @@ type Props = {
 interface authContextType {
   authenticated: boolean;
   loadingPage: boolean;
+  UserContext: { username: string | undefined; role: string | undefined };
   login: () => void;
   logout: () => void;
+  setUserContext: (username: string | undefined, role: string | undefined) => void;
   isUserStillValid: () => Promise<boolean>;
 }
 
 const authContextDefaultValues: authContextType = {
   authenticated: false,
   loadingPage: true,
+  UserContext: { role: undefined, username: undefined },
   login: () => {},
   logout: () => {},
+  setUserContext: () => {
+    return { role: undefined, username: undefined };
+  },
   isUserStillValid: async () => false,
 };
 
@@ -29,10 +34,15 @@ export function useAuth() {
 }
 
 const AuthenticatedContext = createContext<authContextType>(authContextDefaultValues);
+
 export function AuthProvider({ children }: Props) {
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
+  const [userInformationContext, setUserInformationContext] = useState<{ username: string | undefined; role: string | undefined }>({ role: undefined, username: undefined });
 
+  const setUserContext = (username: string | undefined, role: string | undefined) => {
+    setUserInformationContext({ role, username });
+  };
   const login = () => {
     setAuthenticated(true);
   };
@@ -62,7 +72,8 @@ export function AuthProvider({ children }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        await getClientInformation();
+        const { role, username } = await getClientInformation();
+        setUserInformationContext({ username, role });
         login();
       } catch (error: any) {
         console.log("error+>: ", error.message);
@@ -72,7 +83,9 @@ export function AuthProvider({ children }: Props) {
     })();
   }, []);
 
-  const value = {
+  const value: authContextType = {
+    UserContext: userInformationContext,
+    setUserContext,
     loadingPage,
     authenticated,
     login,
@@ -83,7 +96,7 @@ export function AuthProvider({ children }: Props) {
   return <AuthenticatedContext.Provider value={value}>{children}</AuthenticatedContext.Provider>;
 }
 
-async function getClientInformation(): Promise<string | Error> {
+async function getClientInformation(): Promise<any | Error> {
   return await new Promise(async (resolve, reject): Promise<void | string | Error> => {
     try {
       if (localStorage.getItem("_USER_INFORMATION") !== null) {
@@ -96,7 +109,7 @@ async function getClientInformation(): Promise<string | Error> {
           }
           throw new Error("user information already expired");
         }
-        return resolve(role);
+        return resolve({ username, role });
       } else {
         sessionStorage.clear();
         localStorage.clear();

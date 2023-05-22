@@ -1,12 +1,7 @@
 import { apiFetcher } from "@/pages/_app";
 import { useQuery, useMutation, useQueryClient } from "react-query";
-import { Axios, AxiosHeaders, AxiosResponse } from "axios";
 import { getAllToken } from "context/BooksContext";
 import React, { useState } from "react";
-import { QueryCache } from "@tanstack/react-query";
-import { promises } from "dns";
-import { resolve } from "path";
-import { object } from "yup";
 
 export default function EditRole() {
   const queryClient = useQueryClient();

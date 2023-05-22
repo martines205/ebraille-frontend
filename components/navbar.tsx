@@ -29,8 +29,8 @@ type IButtonContext = [ContextType, React.Dispatch<React.SetStateAction<ContextT
 const ButtonContext = createContext<IButtonContext>([{ btn1_triggered: false, btn2_triggered: false }, () => null]);
 
 interface navbarDataSchema {
-  username: string;
-  role: string;
+  username: string | undefined;
+  role: string | undefined;
   imgURL?: string;
 }
 
@@ -40,19 +40,24 @@ export default function Navbar({ username, role }: navbarDataSchema) {
     <ButtonContext.Provider value={[triggered, setTrigger]}>
       <nav className="w-full h-[70px] bg-white bg-opacity-[.95] fixed flex items-center justify-between z-[99999]" onMouseLeave={() => setTrigger({ btn1_triggered: false, btn2_triggered: false })}>
         <Profile name={username} role={role} />
-        <div className=" flex gap-2 relative right-2">
-          <Home />
-          {role !== "USER" && <BookSetting role={role} />}
-          <CommonSetting role={role} />
-        </div>
+
+        {role === undefined ? (
+          <div className=" relative right-2 w-40 h-9 bg-black/75 animate-[pulse_1.3s_infinite] rounded-md " />
+        ) : (
+          <div className=" flex gap-2 relative right-2">
+            <Home />
+            {role !== "USER" && <BookSetting role={role} />}
+            <CommonSetting role={role} />
+          </div>
+        )}
       </nav>
     </ButtonContext.Provider>
   );
 }
 
 interface profileDataConfig {
-  name: string;
-  role: string;
+  name: string | undefined;
+  role: string | undefined;
   imgURL?: string;
   className?: string;
 }

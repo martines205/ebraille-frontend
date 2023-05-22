@@ -7,7 +7,7 @@ import { apiFetcher } from "@/pages/_app";
 import { AxiosError } from "axios";
 import Image from "next/image";
 interface addBookInterface {
-  role: string;
+  role: string | undefined;
 }
 
 // interface BookPreviewField {

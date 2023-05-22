@@ -1,19 +1,18 @@
 import { LoadingPage } from "components/Loading";
 import Navbar from "components/navbar";
 import { useAuth } from "context/authContext";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { apiFetcher } from "./_app";
-import { createClient } from "redis";
 import Head from "next/head";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext } from "react";
 import { ListBook } from "components/listBook";
 import UpdateBooks from "components/updateBookComponent";
 import { RemoveBook } from "components/RemoveBook";
 import { AddBook } from "components/AddBook";
 import { BookContextProvider } from "context/BooksContext";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import EditRole from "components/EditRole";
+import useWebSocket from "react-use-websocket";
 
 interface ContextType {
   mode: number;
@@ -21,10 +20,24 @@ interface ContextType {
 type IModeContext = [React.Dispatch<React.SetStateAction<ContextType>>];
 export const ModeContext = createContext<IModeContext>([() => null]);
 
-export default function Index({ role, username }: any) {
+export default function Index() {
+  const { lastJsonMessage, readyState, sendMessage } = useWebSocket("ws://localhost:3001/&UID=ADMIN", {
+    shouldReconnect: (closeEvent) => {
+      console.log("closeEvent: ", closeEvent);
+      console.log("shouldReconnect triggered!");
+      return true;
+    },
+    reconnectAttempts: 10,
+    reconnectInterval: 3000,
+    retryOnError: true,
+  });
   const route = useRouter();
-  const { authenticated, loadingPage } = useAuth();
+  const { authenticated, loadingPage, UserContext } = useAuth();
+  const role = UserContext.role;
+  const [notificationButton, setNotificationButton] = useState(false);
   const [mode, setMode] = useState<ContextType>({ mode: 0 });
+  const [helpRequest, setHelpRequest] = useState({});
+
   useEffect(() => {
     console.log("mode: ", mode);
     const onMode = mode.mode;
@@ -45,6 +58,17 @@ export default function Index({ role, username }: any) {
         break;
     }
   }, [mode]);
+
+  useEffect(() => {
+    const newMessage: any = { ...lastJsonMessage };
+    const requestList: any = { ...helpRequest };
+    if (lastJsonMessage !== null) {
+      requestList[`${newMessage.deviceID}`] = Date.now();
+      console.log("requestList: ", requestList);
+      sessionStorage.setItem("notificationCache", JSON.stringify(requestList));
+    }
+    setHelpRequest(requestList);
+  }, [lastJsonMessage]);
 
   type MyComponentProps = {
     modeState: ContextType;
@@ -70,17 +94,25 @@ export default function Index({ role, username }: any) {
         return <EditRole />;
       default:
         return (
-          <BookContextProvider>
-            <ListBook />;
-          </BookContextProvider>
+          <>
+            <BookContextProvider>
+              <ListBook />;
+            </BookContextProvider>
+          </>
         );
     }
   };
 
   useEffect(() => {
     if (!authenticated) route.push("/");
-  }, [authenticated, loadingPage, route]);
-  if (!authenticated || loadingPage || role === undefined) return <LoadingPage />;
+    else {
+      const notifCache = sessionStorage.getItem("notificationCache");
+      if (notifCache !== null) setHelpRequest(JSON.parse(notifCache));
+    }
+  }, [authenticated, loadingPage, route, role]);
+  if (!authenticated || loadingPage) return <LoadingPage />;
+
+  console.log("API_BASE_URL: ", process.env.API_BASE_URL);
 
   return (
     <>
@@ -88,56 +120,50 @@ export default function Index({ role, username }: any) {
         <title>Dashboard</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="h-screen w-screen relative">
+      <main className="h-screen w-screen relative flex">
         <ModeContext.Provider value={[setMode]}>
-          <Navbar role={role} username={username} />
+          <Navbar role={UserContext.role} username={UserContext.username} />
         </ModeContext.Provider>
-        <div className="h-full w-full flex justify-center items-center ">{modeSelector({ modeState: mode })}</div>
+        <div className="h-full w-full flex justify-center items-center relative ">{modeSelector({ modeState: mode })}</div>
+
+        {notificationButton && (
+          <div className=" w-64 h-[75%] bg-yellow-300/90 absolute bottom-24 right-10 rounded-lg flex flex-col  items-center  border-2 border-blue-600 p-2 z-50">
+            <div className="w-full h-full overflow-y-auto scrollbar-hide rounded-lg">
+              {Object.keys(helpRequest).map((v, i) => (
+                <div className="w-[100%] h-20 bg-white rounded-lg mb-1 border-2 border-red-500 flex">
+                  <button
+                    onClick={() => {
+                      const latestHelpRequest: any = { ...helpRequest };
+                      delete latestHelpRequest[`${v}`];
+                      sessionStorage.setItem("notificationCache", JSON.stringify(latestHelpRequest));
+                      setHelpRequest(latestHelpRequest);
+                      console.log("readyState:", readyState);
+                    }}
+                    className="h-full w-1/4 bg-green-300 active:bg-green-800 active:text-white flex justify-center items-center rounded-l-md font-bold relative "
+                  >
+                    OK
+                  </button>
+                  <div className="w-3/4 h-full rounded-r-md flex flex-col justify-center border-l border-b">
+                    <p className=" font-bold text-center">DEVICE ID: {v}</p>
+                    <p className=" text-center">Need Help!</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div
+          onClick={() => {
+            setNotificationButton(!notificationButton);
+          }}
+          className=" w-10 h-10 bg-yellow-300/90 absolute bottom-10 right-10 rounded-lg flex justify-center items-center "
+        >
+          <NotificationsActiveIcon color="primary" />
+          <div className=" absolute flex justify-center items-center w-5 h-5 rounded-full bg-red-500 -bottom-3 -right-3 outline outline-blue-500">
+            <p className="text-white">{Object.keys(helpRequest).length.toString()}</p>
+          </div>
+        </div>
       </main>
     </>
   );
 }
-
-export const getServerSideProps: GetServerSideProps<{}> = async (context) => {
-  const client = createClient();
-  client.on("error", (err) => console.log("Redis Client Error", err));
-  await client.connect();
-  const { accessToken, refreshToken, username } = context.query;
-  if (accessToken === undefined || refreshToken === undefined) return { redirect: { destination: "/", permanent: true } };
-  if (accessToken === "" || refreshToken === "") return { redirect: { destination: "/", permanent: true } };
-  // console.log("accessToken, refreshToken: ", accessToken, refreshToken);
-  try {
-    if (typeof refreshToken === "string") {
-      const value = await client.get(refreshToken);
-      if (value !== null) {
-        // console.log("Found in cache!");
-        return {
-          props: {
-            role: value,
-            username,
-          },
-        };
-      }
-    }
-
-    const response = await apiFetcher.get("/role/getRole", { params: { accessToken, refreshToken } });
-    if (typeof refreshToken === "string") {
-      await client.set(refreshToken, response.data.role, { EX: 60 * 5 });
-      console.log("cached!!!");
-    }
-    // console.log("response: ", response.data);
-    return {
-      props: {
-        role: response.data.role,
-        username,
-      },
-    };
-  } catch (error: any) {
-    await client.DEL(refreshToken);
-    await client.disconnect();
-
-    console.log("Error: ", error.config.baseURL);
-    console.log("Error: ", error.config.baseURL);
-    return { redirect: { destination: "/?status=false", permanent: false } };
-  }
-};

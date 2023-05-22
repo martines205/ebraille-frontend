@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { apiFetcher } from "./_app";
-import { Axios, AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 export default function ForgotPassword() {
   interface validateFormField {
@@ -19,13 +19,12 @@ export default function ForgotPassword() {
   const onValidate = async (data: validateFormField) => {
     try {
       const response = await apiFetcher.get("/forgetPassword/checkDataInformation", { params: data });
-      // console.log("response: ", response);
       setResponseMessage(response?.data.message);
       setIsValid(true);
       setRequestId(response?.data.resetPasswordRequestID);
     } catch (error) {
+      console.log("error: ", error);
       if (error instanceof AxiosError) setResponseMessage(error.response?.data.message);
-      // console.log("error: ", error);
     }
   };
 

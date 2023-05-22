@@ -14,7 +14,7 @@ const ButtonFilterContext = createButtonContext();
 
 export function ListBook() {
   const { onLoading, books, filteredBooks, filter, searchBookTitle } = useBookRequest();
-  console.log("filteredBooks: ", filteredBooks);
+  // console.log("filteredBooks: ", filteredBooks);
   const [button, setButton] = useState<INTERFACE_FILTER_BUTTON>({ onId: "0", filterTypeData: { categoryIs: "", languageIs: "" } });
   const [toSearch, setToSearch] = useState<INTERFACE_SEARCH_CONTEXT>({ title: "" });
 
