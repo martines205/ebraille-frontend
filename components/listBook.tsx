@@ -69,7 +69,8 @@ export function ListBook() {
   }
 
   const imageLoader = (isbn: string) => {
-    return `http://localhost:3001/book/getCover?isbn=${isbn}`;
+    const ip = process.env.API_BASE_URL;
+    return `${ip}/book/getCover?isbn=${isbn}`;
   };
 
   return (
