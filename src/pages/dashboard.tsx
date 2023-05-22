@@ -21,7 +21,8 @@ type IModeContext = [React.Dispatch<React.SetStateAction<ContextType>>];
 export const ModeContext = createContext<IModeContext>([() => null]);
 
 export default function Index() {
-  const { lastJsonMessage, readyState, sendMessage } = useWebSocket("ws://localhost:3001/&UID=ADMIN", {
+  const IP = "192.168.137.254:3001";
+  const { lastJsonMessage, readyState, sendMessage } = useWebSocket(`ws://${IP}/&UID=ADMIN`, {
     shouldReconnect: (closeEvent) => {
       console.log("closeEvent: ", closeEvent);
       console.log("shouldReconnect triggered!");
