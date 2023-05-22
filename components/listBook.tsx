@@ -118,7 +118,7 @@ export function ListBook() {
                   console.log("booksData: ", filteredBooks[index]);
                 }}
                 id={index.toString()}
-                className="w-[230px] h-[300px] bg-slate-50/50 rounded-md hover:border-4 hover:border-yellow-300 mr-3 relative"
+                className="w-[230px] h-[300px] bg-slate-50/50 rounded-md hover:border-4 hover:border-yellow-300 mr-3 relative mb-3"
               >
                 <Image loader={() => imageLoader(`${filteredBooks[index].isbn}`)} src={"tes.png"} fill alt={`cover book ${value.titles}.png`} />
               </div>
