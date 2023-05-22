@@ -181,14 +181,14 @@ export function BookFilter() {
           filterTypeLabel="Category"
           buttonTypeId="1"
           contextSub={ButtonFilterContext}
-          className="pt-2 pb-2 h-full w-[150px] bg-black text-white  pr-1 rounded-lg relative active:bg-opacity-75 active:scale-105 duration-200"
+          className="pt-2 pb-2 h-full w-[150px] bg-black text-white  pr-1 rounded-lg relative active:bg-opacity-75 active:scale-105 duration-200 z-50"
         />
         <FilterButton
           booksData={books}
           filterTypeLabel="Language"
           buttonTypeId="2"
           contextSub={ButtonFilterContext}
-          className="pt-2 pb-2 h-full w-[150px] bg-black text-white  pr-1 rounded-lg relative active:bg-opacity-75 active:scale-105 duration-200"
+          className="pt-2 pb-2 h-full w-[150px] bg-black text-white  pr-1 rounded-lg relative active:bg-opacity-75 active:scale-105 duration-200 z-50"
         />
       </div>
     </div>
