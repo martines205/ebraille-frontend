@@ -21,8 +21,8 @@ type IModeContext = [React.Dispatch<React.SetStateAction<ContextType>>];
 export const ModeContext = createContext<IModeContext>([() => null]);
 
 export default function Index() {
-  const IP = "localhost:3001";
-  // const IP = "192.168.137.254:3001";
+  // const IP = "localhost:3001";
+  const IP = "192.168.137.254:3001";
   const { lastJsonMessage, readyState, sendMessage } = useWebSocket(`ws://${IP}/&UID=ADMIN`, {
     shouldReconnect: (closeEvent) => {
       console.log("closeEvent: ", closeEvent);
@@ -64,7 +64,7 @@ export default function Index() {
   useEffect(() => {
     const newMessage: any = { ...lastJsonMessage };
     const requestList: any = { ...helpRequest };
-    if (lastJsonMessage !== null) {
+    if (lastJsonMessage !== null && role !== "USER") {
       requestList[`${newMessage.deviceID}`] = Date.now();
       console.log("requestList: ", requestList);
       sessionStorage.setItem("notificationCache", JSON.stringify(requestList));
@@ -155,17 +155,19 @@ export default function Index() {
             </div>
           </div>
         )}
-        <div
-          onClick={() => {
-            setNotificationButton(!notificationButton);
-          }}
-          className=" w-10 h-10 bg-yellow-300/90 absolute bottom-10 right-10 rounded-lg flex justify-center items-center "
-        >
-          <NotificationsActiveIcon color="primary" />
-          <div className=" absolute flex justify-center items-center w-5 h-5 rounded-full bg-red-500 -bottom-3 -right-3 outline outline-blue-500">
-            <p className="text-white">{Object.keys(helpRequest).length.toString()}</p>
+        {role !== "USER" && (
+          <div
+            onClick={() => {
+              setNotificationButton(!notificationButton);
+            }}
+            className=" w-10 h-10 bg-yellow-300/90 absolute bottom-10 right-10 rounded-lg flex justify-center items-center "
+          >
+            <NotificationsActiveIcon color="primary" />
+            <div className=" absolute flex justify-center items-center w-5 h-5 rounded-full bg-red-500 -bottom-3 -right-3 outline outline-blue-500">
+              <p className="text-white">{Object.keys(helpRequest).length.toString()}</p>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </>
   );
