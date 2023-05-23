@@ -69,8 +69,8 @@ export default function Index() {
       console.log("requestList: ", requestList);
       sessionStorage.setItem("notificationCache", JSON.stringify(requestList));
       notifyMe(newMessage.deviceID);
+      setHelpRequest(requestList);
     }
-    setHelpRequest(requestList);
   }, [lastJsonMessage]);
 
   type MyComponentProps = {
