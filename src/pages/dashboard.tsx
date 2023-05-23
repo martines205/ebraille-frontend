@@ -21,7 +21,8 @@ type IModeContext = [React.Dispatch<React.SetStateAction<ContextType>>];
 export const ModeContext = createContext<IModeContext>([() => null]);
 
 export default function Index() {
-  const IP = "192.168.137.254:3001";
+  const IP = "localhost:3001";
+  // const IP = "192.168.137.254:3001";
   const { lastJsonMessage, readyState, sendMessage } = useWebSocket(`ws://${IP}/&UID=ADMIN`, {
     shouldReconnect: (closeEvent) => {
       console.log("closeEvent: ", closeEvent);
@@ -67,6 +68,7 @@ export default function Index() {
       requestList[`${newMessage.deviceID}`] = Date.now();
       console.log("requestList: ", requestList);
       sessionStorage.setItem("notificationCache", JSON.stringify(requestList));
+      notifyMe(newMessage.deviceID);
     }
     setHelpRequest(requestList);
   }, [lastJsonMessage]);
@@ -167,4 +169,20 @@ export default function Index() {
       </main>
     </>
   );
+}
+
+function notifyMe(Device_ID: string) {
+  if (!("Notification" in window)) {
+    alert(`User on Device: ${Device_ID} need some help!`);
+  } else if (Notification.permission === "granted") {
+    const notification = new Notification(`User on Device: ${Device_ID} need some help!`);
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        const notification = new Notification(`User on Device: ${Device_ID} need some help!`);
+      }
+    });
+  } else {
+    alert(`User on Device: ${Device_ID} need some help!`);
+  }
 }
