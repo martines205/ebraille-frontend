@@ -208,7 +208,7 @@ export function BookPreview({ data }: BOOK_PREVIEW_INTERFACE) {
     console.log("ISBN: ", bookISBN);
     try {
       const { accessToken, refreshToken } = getAllToken();
-      const response = await apiFetcher.delete("book/website/deleteBook", { params: { isbn, accessToken, refreshToken } });
+      const response = await apiFetcher.delete("book/website/deleteBook", { params: { ISBN: isbn, accessToken, refreshToken } });
       const dataReset = { ...dataOfSelectedBooks };
       Object.keys(dataReset).map((key) => (dataReset[`${key}`] = ""));
       setDataOfSelectedBooks(dataReset);
