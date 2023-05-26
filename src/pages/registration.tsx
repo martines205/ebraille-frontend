@@ -27,7 +27,6 @@ export default function Index() {
       methods.setError("Password", { message: "Password tidak sesuai! *" });
       return;
     }
-
     const result = await sendRegistrationRequest(data);
     if (result instanceof AxiosError) {
       console.log("result.response?.data: ", result.response?.data);
@@ -35,16 +34,16 @@ export default function Index() {
         console.log(e);
         if (e === "NIK") {
           methods.setError(`NIK`, { message: "* NIK ini sudah terdaftar!" });
-          setFormIndex(0);
+          return setFormIndex(0);
         }
-        if (e === "Username") methods.setError(`Username`, { message: "* Username ini sudah terdaftar!" });
-        if (e === "Email") methods.setError(`Email`, { message: "* Email ini sudah terdaftar!" });
+        if (e === "Username") return methods.setError(`Username`, { message: "* Username ini sudah terdaftar!" });
+        if (e === "Email") return methods.setError(`Email`, { message: "* Email ini sudah terdaftar!" });
       });
     } else {
       methods.reset();
       setMsg("Registrasi berhasil!");
       console.log("Registrasi berhasil");
-      setTimeout(() => {
+      return setTimeout(() => {
         router.push("/");
       }, 1500);
     }
