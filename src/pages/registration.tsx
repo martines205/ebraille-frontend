@@ -41,6 +41,7 @@ export default function Index() {
         if (e === "Email") methods.setError(`Email`, { message: "* Email ini sudah terdaftar!" });
       });
     } else {
+      methods.reset();
       setMsg("Registrasi berhasil!");
       setTimeout(() => {
         router.push("/");
