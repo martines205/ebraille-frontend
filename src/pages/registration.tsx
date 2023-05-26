@@ -86,7 +86,7 @@ export default function Index() {
                     }
                   }}
                 >
-                  {formIndex === 0 ? "Next" : "Registered"}
+                  {formIndex === 0 ? "Next" : "Register"}
                 </button>
               </div>
             </form>
