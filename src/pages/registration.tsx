@@ -43,6 +43,7 @@ export default function Index() {
     } else {
       methods.reset();
       setMsg("Registrasi berhasil!");
+      console.log("Registrasi berhasil");
       setTimeout(() => {
         router.push("/");
       }, 1500);
