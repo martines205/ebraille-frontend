@@ -19,6 +19,7 @@ interface formField {
 export default function Index() {
   const [msg, setMsg] = useState("");
   const [formIndex, setFormIndex] = useState(0);
+  const [wait, setWait] = useState(false);
   const methods = useForm<formField>();
   const router = useRouter();
   const onSubmit = async (data: formField) => {
@@ -27,6 +28,7 @@ export default function Index() {
       methods.setError("Password", { message: "Password tidak sesuai! *" });
       return;
     }
+    setWait(true);
     const result = await sendRegistrationRequest(data);
     if (result instanceof AxiosError) {
       console.log("result.response?.data: ", result.response?.data);
@@ -38,6 +40,9 @@ export default function Index() {
         }
         if (e === "Username") return methods.setError(`Username`, { message: "* Username ini sudah terdaftar!" });
         if (e === "Email") return methods.setError(`Email`, { message: "* Email ini sudah terdaftar!" });
+        return setTimeout(() => {
+          setWait(false);
+        }, 1500);
       });
     } else {
       methods.reset();
@@ -74,6 +79,7 @@ export default function Index() {
                   type={formIndex === 0 ? "button" : "submit"}
                   className="w-1/3 border border-red-400 rounded-md h-10  p-1 bg-black/50 cursor-pointer text-white"
                   // disabled={formIndex !== 0}
+                  disabled={wait}
                   onClick={() => {
                     setFormIndex(1);
                     if (formIndex === 1) {
@@ -86,7 +92,7 @@ export default function Index() {
                     }
                   }}
                 >
-                  {formIndex === 0 ? "Next" : "Register"}
+                  {wait === true ? "Wait" : formIndex === 0 ? "Next" : "Register"}
                 </button>
               </div>
             </form>
